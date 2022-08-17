@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+
+
+<meta charset="utf8">
+<title>Yo.</title>
+
+<div>DROP!<button onclick="document.querySelector('input').click()">Or click</button></div>
+</br>
+<div id="result"></div>
+<input style="visibility: collapse; width: 0px;" type="file" onchange="upload(this.files[0])">
+
+
+<script>
+    var api_url = "http://localhost:8000/api/"
+    window.ondragover = function(e) {
+        e.preventDefault()
+    }
+    window.ondrop = function(e) {
+        e.preventDefault()
+        upload(e.dataTransfer.files[0])
+    }
+    function upload(file) {
+
+        /* Is the file an image? */
+        if (!file || !file.type.match(/image.*/)) return
+
+        /* It is! */
+        // document.body.className = "uploading"
+
+        /* Lets build a FormData object*/
+        var fd = new FormData()
+        fd.append("file", file) // Append the file
+
+        var xhr = new XMLHttpRequest(); // Create the XHR (Cross-Domain XHR FTW!!!)
+        xhr.open("POST", api_url)
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                console.log(xhr.responseText)
+                res = JSON.parse(xhr.responseText)
+                // add received image
+                var img = document.createElement("img")
+                img.src = "data:image/png;base64,"+res.encoded_img
+                img.alt = "resultat"
+                var elmnt = document.getElementById("result")
+                elmnt.appendChild(img)
+            }
+        }
+        xhr.send(fd);
+    }
+</script>
+
+
+
+<style>
+    body {text-align: center; padding-top: 100px;}
+    div { border: 10px solid black; text-align: center; line-height: 100px; width: 200px; margin: auto; font-size: 40px; display: inline-block;}
+    #link, p , div {display: none}
+    div {display: inline-block;}
+    .uploading div {display: none}
+    .uploaded div {display: none}
+    .uploading p {display: inline}
+    .uploaded #link {display: inline}
+    em {position: absolute; bottom: 0; right: 0}
+</style>
+

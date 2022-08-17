@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+
+
+<head>
+    <meta charset="utf8">
+    <title>Future Vision Transport</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+</head>
+
+
+<body>
+    
+    <header>
+        <!-- <img id="logo" src="https://user.oc-static.com/upload/2019/10/24/15719060749143_image2.png"> -->
+        <div class="p-5 text-center bg-dark fixed-top">
+          <h1 class="mb-3 text-center ">Future Vision Transport</h1>
+        </div>
+
+    </header>
+    <div class="container">
+
+        <div class="row">
+            <div class="col-lg-7 mx-auto">
+                <div class="card mt-2 mx-auto p-4 bg-dark">
+                    <div class="card-body bg-dark">
+                        <div class="container">
+                            <div class="upload col-md-8 mx-auto" id="uploader">
+                                <input type="file" title="" class="drop-here">
+                                <div class="text text-drop">Déposez ici</div>
+                                <div class="text text-upload">uploading</div>
+                                <svg class="progress-wrapper" width="300" height="300">
+                                <circle class="progress" r="115" cx="150" cy="150"></circle>
+                                </svg>
+                                <svg class="check-wrapper" width="130" height="130">
+                                <polyline class="check" points="100.2,40.2 51.5,88.8 29.8,67.5 "/>
+                                </svg>
+                                <div class="shadow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </br>
+
+        
+        <div id="detected_content" class="card mt-2 mx-auto p-4 bg-dark" onClick="window.location.reload();" style="display:none;">
+            <div class="col-md-12">
+                <div class="card mb-3" align="center">
+                    <div class="card-header">Résultat de l'analyse :</div>
+                    <div class="card-body">
+                        <div id="result" class="col-md-8 mx-auto" onClick="window.location.reload();"></div>
+                    </div>
+                </div>
+                <div class="card mb-3" align="center">
+                    <div class="card-header">Objets détectés :</div>
+                    <div class="card-body">
+                        <p class="card-text" id="detected_objects">
+                            <ul id="object_list">
+                            </ul>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input style="visibility: collapse; width: 0px;" type="file" onchange="upload(this.files[0])">
+    </div>
+    
+    <script>
+        var api_url = "http://localhost:8000/api/"
+    
+        // juste pour le style
+        var fileUpload = document.querySelector(".upload")
+    
+        fileUpload.addEventListener("dragover", function() {
+            this.classList.add("drag")
+            this.classList.remove("drop", "done")
+        });
+    
+        fileUpload.addEventListener("dragleave", function() {
+            this.classList.remove("drag")
+        });
+    
+        fileUpload.addEventListener("drop", start, false)
+        fileUpload.addEventListener("change", start, false)
+    
+        function start() { 
+            this.classList.remove("drag")
+            this.classList.add("drop")
+            setTimeout(() => this.classList.add("done"), 300)
+        }
+        // \juste pour le style
+    
+        window.ondragover = function(e) {
+            e.preventDefault()
+        }
+        window.ondrop = function(e) {
+            e.preventDefault()
+            upload(e.dataTransfer.files[0])
+        }
+
+        function getWordsBetweenQuotes(str) {
+            return str.match(/\w+|"[^"]+"/g)
+        }
+
+        function upload(file) {
+    
+            /* le fichier est-il une image? */
+            if (!file || !file.type.match(/image.*/)) return
+
+            var fd = new FormData()
+            fd.append("file", file) // ajoute le fichier
+    
+            var xhr = new XMLHttpRequest(); // Crée le XHR (Cross-Domain XHR)
+            xhr.open("POST", api_url)
+    
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    console.log(xhr.responseText)
+                    res = JSON.parse(xhr.responseText)
+                    // ajoute l'image reçue
+                    var img = document.createElement("img")
+                    img.src = "data:image/png;base64,"+res.encoded_img
+                    img.alt = "resultat"
+                    var elmnt = document.getElementById("result")
+                    elmnt.appendChild(img)
+                    document.getElementById("uploader").style.display = "none"
+                    document.getElementById("detected_content").style.display = "block"
+                    var object_list = getWordsBetweenQuotes(res.detected_objects)
+                    var ul = document.getElementById("object_list")
+                    for(var i=0; i<object_list.length; i++){
+                        var li = document.createElement("li")
+                        li.appendChild(document.createTextNode(object_list[i]))
+                        ul.appendChild(li)
+                    }
+                }
+            }
+            xhr.send(fd);
+        }
+    </script>
+    
+    
+    
+    <style>
+    header{
+        margin-bottom: 8em;
+    }
+    img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+    /* #logo{
+        max-width: 33% !important;
+        max-height: 33% !important;
+        position:absolute !important;
+        left:0 important;
+        top:0 important;
+    } */
+    .bg-dark{
+        background-color: #000000 !important;
+    }
+    .upload {
+        --background: #FFFFFF;
+        --text-drop: #CAC8CA;
+        --text-upload: #000000;
+        --progress-color: #E7E5E7;
+        --check-color: var(--text-upload);
+        --border-radius: 30px;
+        width: 300px;
+        height: 300px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .upload::before {
+        content: "";
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: var(--background);
+        border-radius: var(--border-radius);
+        transition: all 0.3s ease-out;
+        box-shadow: var(--shadow-x, 0px) var(--shadow-y, 1px) var(--shadow-blur, 3px) rgba(0, 0, 0, 0.1);
+        transform: scale(var(--scale, 1));
+    }
+    .upload .drop-here {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        outline: none;
+        border-radius: var(--border-radius);
+        opacity: var(--opacity, 0);
+        overflow: hidden;
+        cursor: pointer;
+        text-indent: -9999px;
+        z-index: 1;
+    }
+    .upload .text {
+        position: absolute;
+        font-size: 21px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: bold;
+    }
+    .upload .text.text-drop {
+        color: var(--text-drop);
+        opacity: var(--opacity, 1);
+        transition: opacity 0.15s ease-out 0.15s;
+    }
+    .upload .text.text-upload {
+        color: var(--text-upload);
+        opacity: var(--opacity, 0);
+        transition: opacity 0.15s ease-out;
+    }
+    .upload .progress-wrapper {
+        position: absolute;
+    }
+    .upload .progress-wrapper .progress {
+        fill: none;
+        stroke: var(--progress-color);
+        stroke-width: 3;
+        stroke-dasharray: 722;
+        stroke-dashoffset: 722;
+    }
+    .upload .check-wrapper {
+        position: absolute;
+        opacity: var(--opacity, 0);
+        transform: scale(var(--scale, 0.9)) rotate(var(--rotate, 3deg));
+        transition: transform 0.15s ease-in-out, opacity 0.15s ease-in;
+    }
+    .upload .check-wrapper .check {
+        width: 100px;
+        width: 100px;
+        fill: none;
+        stroke: var(--check-color);
+        stroke-width: 7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 100 0;
+        stroke-dashoffset: 100;
+    }
+    .upload .shadow {
+        opacity: var(--opacity, 0);
+        overflow: hidden;
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        border-radius: var(--border-radius);
+        filter: blur(25px);
+        z-index: -1;
+        transition: all 0.5s ease;
+    }
+    .upload .shadow::before {
+        content: "";
+        position: absolute;
+        top: -25%;
+        left: -25%;
+        height: 150%;
+        width: 150%;
+        background: conic-gradient(#4b82d4, #6a29e9, #4b82d4, #6a29e9, #c58357, #FFC940, #4b82d4);
+        -webkit-animation: shadow-animate 5s linear infinite;
+        animation: shadow-animate 5s linear infinite;
+    }
+    .upload.drag {
+        --scale: 1.03;
+        --shadow-y: 5px;
+        --shadow-blur: 20px;
+    }
+    .upload.drop .text.text-drop {
+        --opacity: 0;
+        transition: opacity 0.15s ease-out;
+    }
+    .upload.drop .text.text-upload {
+        --opacity: 1;
+        transition: opacity 0.15s ease-out 0.15s;
+    }
+    .upload.drop .shadow {
+        --opacity: 1;
+    }
+    .upload.drop .progress-wrapper {
+        opacity: var(--opacity, 1);
+        transform: scale(var(--scale, 1)) rotate(var(--rotate, -90deg));
+    }
+    .upload.drop .progress-wrapper .progress {
+        -webkit-animation: progress-animate 3s ease 0.3s forwards;
+        animation: progress-animate 3s ease 0.3s forwards;
+    }
+    .upload.done {
+        --opacity: 0;
+    }
+    .upload.done .text.text-upload {
+        --opacity: 0;
+    }
+    .upload.done .shadow {
+        --opacity: 0;
+    }
+    .upload.done .progress-wrapper {
+        --scale: .95;
+        transition: transform 0.3s, opacity 0.3s;
+    }
+    .upload.done .check-wrapper {
+        --opacity: 1;
+        --scale: 1;
+        --rotate: 0deg;
+        transition: transform 0.5s ease-in-out 0.3s, opacity 0.5s ease-in 0.3s;
+    }
+    .upload.done .check-wrapper .check {
+        -webkit-animation: check-animate 0.5s ease-in-out 0.3s forwards;
+        animation: check-animate 0.5s ease-in-out 0.3s forwards;
+    }
+    
+    @-webkit-keyframes shadow-animate {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    
+    @keyframes shadow-animate {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+    @-webkit-keyframes progress-animate {
+        0% {
+            stroke-dashoffset: 722;
+        }
+        20% {
+            stroke-dashoffset: 500;
+        }
+        50% {
+            stroke-dashoffset: 322;
+        }
+        55% {
+            stroke-dashoffset: 300;
+        }
+        100% {
+            stroke-dashoffset: 0;
+        }
+        }
+    @keyframes progress-animate {
+        0% {
+            stroke-dashoffset: 722;
+        }
+        20% {
+            stroke-dashoffset: 500;
+        }
+        50% {
+            stroke-dashoffset: 322;
+        }
+        55% {
+            stroke-dashoffset: 300;
+        }
+        100% {
+            stroke-dashoffset: 0;
+        }
+    }
+    @-webkit-keyframes check-animate {
+        0% {
+            stroke-dasharray: 0 100;
+            stroke-dashoffset: 0;
+        }
+        100% {
+            stroke-dasharray: 100 0;
+            stroke-dashoffset: 100;
+        }
+    }
+    @keyframes check-animate {
+        0% {
+            stroke-dasharray: 0 100;
+            stroke-dashoffset: 0;
+        }
+        100% {
+            stroke-dasharray: 100 0;
+            stroke-dashoffset: 100;
+        }
+    }
+    body {
+        /* background: #E8EBF3;
+        font-family: "Roboto", sans-serif; */
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    body {
+        font-family: 'Lato', sans-serif;
+        background-color: #000000;
+        color: #FFFFFF;
+    }
+
+    h1 {
+        background-color: #000000;
+        margin-bottom: 40px;
+        color: #FFFFFF;
+    }
+
+    label {
+        color: #333;
+    }
+    .card{
+        margin-left: 10px;
+        margin-right: 10px;
+        color: #000000;
+    }
+
+    #result:hover{
+        cursor: pointer;
+    }
+    
+    </style>
+</body>
+
+
