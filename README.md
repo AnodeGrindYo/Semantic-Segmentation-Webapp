@@ -19,7 +19,7 @@ server {
         listen 80;
         server_name XX.XX.XX.XXX; # IPV4 publique de l'instance EC2
         location / {
-                proxy_pass http://12.0.0.1:8000;
+                proxy_pass http://127.0.0.1:8000;
         }
 }
 ```
