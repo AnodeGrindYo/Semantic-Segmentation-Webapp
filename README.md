@@ -62,6 +62,21 @@ apt-get update
 apt-get install ffmpeg libsm6 libxext6  -y
 ```
 
+### Problème avec la taille des images
+```bash
+sudo vim /usr/local/nginx/conf/nginx.conf
+```
+Dans le contexte **http**, ou **location**, saisissez :
+```bash
+client_max_body_size 10M; # 10M, c'est juste un exemple
+``` 
+
+puis relancez nginx :
+```bash
+service nginx reload
+```
+
+
 ### Autre problème
 
 [stack**overflow**](https://stackoverflow.com/)
